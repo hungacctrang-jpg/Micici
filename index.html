@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Ci Ci - Luxury Investment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary-text: #1e293b;
+            --secondary-text: #64748b;
+            --accent-color: #334155;
+            --profit-color: #059669;
+            --border-color: #e2e8f0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-color); color: var(--primary-text); line-height: 1.5; overflow-x: hidden; padding-bottom: 90px; }
+
+        #loading-screen {
+            position: fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; 
+            display:flex; justify-content:center; align-items:center; z-index:9999; font-weight:600; color:var(--accent-color);
+        }
+
+        header {
+            background: var(--card-bg); padding: 20px; text-align: center;
+            position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+
+        .user-status { background: #343a40; color: #ffffff; padding: 12px 20px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+
+        .page { display: none; padding: 20px; max-width: 600px; margin: 0 auto; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- TAB ĐƠN HÀNG --- */
+        .banner-slider { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .banner-slider::-webkit-scrollbar { display: none; }
+        .banner-item { flex: 0 0 90%; height: 160px; border-radius: 24px; overflow: hidden; position: relative; }
+        .banner-item img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.9); }
+
+        .product-card {
+            background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 20px;
+            border: 1px solid var(--border-color); display: flex; gap: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.02);
+        }
+        .product-img { width: 110px; height: 110px; border-radius: 18px; background: #f1f5f9; flex-shrink: 0; padding: 10px; }
+        .product-img img { width: 100%; height: 100%; object-fit: contain; }
+        .product-info { flex: 1; }
+        .product-info h3 { font-size: 16px; margin-bottom: 6px; font-weight: 700; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; color: var(--secondary-text); }
+        .info-row b { color: var(--primary-text); }
+        .profit-text { color: var(--profit-color) !important; font-weight: 700; }
+        .btn-group { display: flex; gap: 8px; margin-top: 12px; }
+        .btn { flex: 1; padding: 10px; border-radius: 12px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; text-align: center; }
+        .btn-buy { background: var(--accent-color); color: white; }
+        .btn-detail { background: #f1f5f9; color: var(--secondary-text); }
+
+        /* --- TAB TIẾN TRÌNH --- */
+        .process-stat { background: var(--accent-color); color: white; padding: 25px; border-radius: 24px; margin-bottom: 25px; }
+        .process-stat p { font-size: 13px; opacity: 0.8; }
+        .process-stat h2 { font-size: 28px; margin: 5px 0; }
+        .order-active-card { background: white; border-radius: 20px; padding: 15px; border-left: 5px solid var(--profit-color); margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .progress-bar { height: 6px; background: #f1f5f9; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--profit-color); transition: width 0.5s ease; }
+
+        /* --- TAB HỒ SƠ --- */
+        .profile-header { text-align: center; margin-bottom: 30px; }
+        .avatar { width: 80px; height: 80px; background: var(--accent-color); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; font-weight: 700; text-transform: uppercase; }
+        .wallet-card { background: white; border-radius: 24px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; border: 1px solid var(--border-color); }
+        .wallet-item { text-align: center; }
+        .wallet-item span { font-size: 12px; color: var(--secondary-text); }
+        .wallet-item p { font-size: 16px; font-weight: 700; margin-top: 4px; }
+        .menu-list { margin-top: 25px; background: white; border-radius: 20px; overflow: hidden; border: 1px solid var(--border-color); }
+        .menu-item { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 15px; font-weight: 500; }
+        .menu-item:last-child { border-bottom: none; }
+
+        /* --- TRANG NẠP TIỀN --- */
+        .deposit-box { background: white; border-radius: 24px; padding: 25px; border: 1px solid var(--border-color); margin-top: 10px; }
+        .deposit-input { width: 100%; padding: 16px; border-radius: 14px; border: 1px solid var(--border-color); font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 20px; background: #f8fafc; outline: none; }
+        .deposit-input:focus { border-color: var(--accent-color); background: white; }
+        .qr-mockup { width: 180px; height: 180px; background: #e2e8f0; margin: 20px auto; display: flex; align-items: center; justify-content: center; border-radius: 14px; font-size: 12px; color: var(--secondary-text); font-weight: 600; text-align: center; padding: 10px; }
+        .bank-details { background: #f1f5f9; padding: 15px; border-radius: 14px; font-size: 13px; margin-bottom: 20px; }
+        .bank-details div { display: flex; justify-content: space-between; margin-bottom: 6px; }
+
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 25px; border-radius: 24px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 15px; text-align: center; }
+        .modal-close { background: var(--accent-color); color: white; width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 600; margin-top: 20px; cursor: pointer; }
+
+        /* Bottom Nav */
+        nav.bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around;
+            padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+            border-top: 1px solid var(--border-color); z-index: 1000;
+        }
+        .nav-link { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; }
+        .nav-link.active { color: var(--accent-color); }
+        .nav-dot { width: 22px; height: 22px; border-radius: 6px; border: 2px solid currentColor; }
+        .nav-link.active .nav-dot { background: currentColor; }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">Đang đồng bộ dữ liệu hệ thống...</div>
+
+    <header><h1 id="header-title">Đơn hàng</h1></header>
+    
+    <div class="user-status">
+        <span id="top-user-display">Tài khoản: --</span>
+        <span style="opacity: 0.8;">Hệ thống an toàn</span>
+    </div>
+
+    <div id="market" class="page active">
+        <div class="banner-slider">
+            <div class="banner-item"><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600" alt=""></div>
+            <div class="banner-item"><img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600" alt=""></div>
+        </div>
+        <div class="product-list" id="car-list"></div>
+    </div>
+
+    <div id="process" class="page">
+        <div class="process-stat">
+            <p>Tổng tài sản đang đầu tư</p>
+            <h2 id="total-invested-display">0đ</h2>
+        </div>
+        <h3 style="margin-bottom: 15px; font-size: 16px;">Gói đầu tư đang chạy</h3>
+        <div id="active-orders-container"></div>
+    </div>
+
+    <div id="profile" class="page">
+        <div class="profile-header">
+            <div class="avatar" id="prof-avatar">-</div>
+            <h2 style="font-size: 20px;" id="prof-name">Đang tải...</h2>
+            <p style="color: var(--secondary-text); font-size: 13px;" id="prof-id">ID: --</p>
+        </div>
+        
+        <div class="wallet-card">
+            <div class="wallet-item"><span>Số dư ví</span><p id="user-balance-display">0đ</p></div>
+            <div class="wallet-item"><span>Tổng thu nhập</span><p id="user-earning-display">0đ</p></div>
+        </div>
+
+        <div class="menu-list">
+            <div class="menu-item" onclick="showTab('deposit', 'Nạp Tiền Hệ Thống', document.getElementById('nav-profile-btn'))"><span>Nạp tiền điện tử</span> <span style="color: var(--profit-color); font-weight:700;">❯</span></div>
+            <div class="menu-item" onclick="actionMock('Tính năng Rút tiền đang được bảo trì hệ thống.')"><span>Rút tiền về ngân hàng</span> ❯</div>
+            <div class="menu-item" onclick="actionMock('Vui lòng liên hệ CSKH để xác thực ngân hàng.')"><span>Liên kết ngân hàng</span> ❯</div>
+            <div class="menu-item" id="logoutBtn" style="color: #e53e3e;"><span>Đăng xuất tài khoản</span></div>
+        </div>
+    </div>
+
+    <div id="deposit" class="page">
+        <div class="deposit-box">
+            <h3 style="font-size:15px; margin-bottom:10px; color: var(--secondary-text);">Nhập số tiền muốn nạp (đ)</h3>
+            <input type="number" class="deposit-input" id="deposit-amount" value="500000" oninput="updateQR()">
+            
+            <div class="bank-details">
+                <div><span>Ngân hàng:</span><strong>QUỐC TẾ VIB BANK</strong></div>
+                <div><span>Số tài khoản:</span><strong>8888 6666 9999</strong></div>
+                <div><span>Chủ tài khoản:</span><strong>MICICI AUTO LUXURY</strong></div>
+                <div><span>Nội dung chuyển khoản:</span><strong id="deposit-memo" style="color:#e53e3e;">--</strong></div>
+            </div>
+
+            <div class="qr-mockup" id="qr-display">[ QUÉT MÃ QR ĐỂ TỰ ĐỘNG NẠP ]</div>
+            
+            <button class="btn btn-buy" style="padding:15px; font-size:14px; width:100%;" id="btn-confirm-deposit">Tôi đã chuyển khoản thành công</button>
+            <button class="btn btn-detail" style="padding:12px; font-size:13px; width:100%; margin-top:10px;" onclick="showTab('profile', 'Hồ sơ', document.getElementById('nav-profile-btn'))">Quay lại Hồ sơ</button>
+        </div>
+    </div>
+
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">--</div>
+            <div id="modalBody" style="font-size: 14px; color: var(--secondary-text);"></div>
+            <button class="modal-close" onclick="closeModal()">Đóng</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="nav-link active" onclick="showTab('market', 'Đơn hàng', this)">
+            <div class="nav-dot"></div><span>Đơn hàng</span>
+        </a>
+        <a href="javascript:void(0)" class="nav-link" onclick="showTab('process', 'Tiến trình', this)">
+            <div class="nav-dot"></div><span>Tiến trình</span>
+        </a>
+        <a href="javascript:void(0)" id="nav-profile-btn" class="nav-link" onclick="showTab('profile', 'Hồ sơ', this)">
+            <div class="nav-dot"></div><span>Hồ sơ</span>
+        </a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, update, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6kSiAH91LQCl_RDGHPTNP-AMEXovX8EQ",
+            authDomain: "micici-d7869.firebaseapp.com",
+            projectId: "micici-d7869",
+            storageBucket: "micici-d7869.firebasestorage.app",
+            messagingSenderId: "412179117709",
+            appId: "G-62ZFR32SWF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUserId = null;
+        let userData = { balance: 0, invested: 0, earning: 0, active_orders: {} };
+
+        // Kiểm tra đăng nhập và lấy dữ liệu Realtime không lo bị fake
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                const userPhone = user.email.split('@')[0];
+                const displayNick = "Micici_" + userPhone.slice(-4);
+
+                document.getElementById('top-user-display').innerHTML = `Tài khoản: <b>${displayNick}</b>`;
+                document.getElementById('prof-name').innerText = displayNick;
+                document.getElementById('prof-id').innerText = "SĐT: " + userPhone;
+                document.getElementById('prof-avatar').innerText = displayNick.charAt(7);
+                document.getElementById('deposit-memo').innerText = "MCC " + userPhone.slice(-4);
+
+                // Lắng nghe biến động số dư và tiến trình trực tiếp từ Firebase Database
+                const userRef = ref(db, 'users/' + currentUserId);
+                onValue(userRef, (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        userData = {
+                            balance: data.balance || 0,
+                            invested: data.invested || 0,
+                            earning: data.earning || 0,
+                            active_orders: data.active_orders || {}
+                        };
+                    } else {
+                        // Tạo mới tài khoản trên DB nếu là user mới đăng ký lần đầu
+                        set(userRef, userData);
+                    }
+                    updateWalletUI();
+                    renderActiveOrders();
+                    document.getElementById('loading-screen').style.display = 'none';
+                });
+
+            } else {
+                window.location.href = 'signup.html';
+            }
+        });
+
+        // Đăng xuất
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => { window.location.href = 'signup.html'; });
+        });
+
+        const cars = [
+            { id: 1, name: "Ô Tô VIP1", price: 100000, days: 50, img: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=200" },
+            { id: 2, name: "Ô Tô VIP2", price: 200000, days: 60, img: "https://images.unsplash.com/photo-1542282088-72c9c27ed0cd?w=200" },
+            { id: 3, name: "Ô Tô VIP3", price: 500000, days: 60, img: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=200" },
+            { id: 4, name: "Ô Tô VIP4", price: 1000000, days: 90, img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200" },
+            { id: 5, name: "Ô Tô VIP5", price: 2000000, days: 90, img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=200" },
+            { id: 6, name: "Ô Tô VIP6", price: 5000000, days: 120, img: "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=200" },
+            { id: 7, name: "Ô Tô VIP7", price: 10000000, days: 180, img: "https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?w=200" },
+        ];
+
+        window.renderCars = function() {
+            const container = document.getElementById('car-list');
+            container.innerHTML = cars.map(car => {
+                const dailyProfit = car.price * 0.36;
+                return `
+                    <div class="product-card">
+                        <div class="product-img"><img src="${car.img}" alt=""></div>
+                        <div class="product-info">
+                            <h3>${car.name}</h3>
+                            <div class="info-row"><span>Giá đầu tư:</span><b>${car.price.toLocaleString()}đ</b></div>
+                            <div class="info-row"><span>Thời hạn:</span><b>${car.days} ngày</b></div>
+                            <div class="info-row"><span class="profit-text">Lợi nhuận/ngày:</span><b class="profit-text">${dailyProfit.toLocaleString()}đ</b></div>
+                            <div class="btn-group">
+                                <button class="btn btn-detail" onclick="openProductDetail(${car.id})">Chi tiết</button>
+                                <button class="btn btn-buy" onclick="buyCar(${car.id})">Đầu tư ngay</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ĐẦU TƯ THỰC TẾ: Trừ tiền và thêm gói vào Firebase Database
+        window.buyCar = function(carId) {
+            const car = cars.find(c => c.id === carId);
+            if(userData.balance < car.price) {
+                actionMock("Số dư khả dụng của bạn không đủ để kích hoạt gói đầu tư này.");
+                return;
+            }
+
+            const newBalance = userData.balance - car.price;
+            const newInvested = userData.invested + car.price;
+
+            // Tạo gói xe mới đẩy lên nhánh active_orders của User đó trên Database
+            const ordersRef = ref(db, `users/${currentUserId}/active_orders`);
+            const newOrderRef = push(ordersRef);
+            
+            const orderData = {
+                name: car.name,
+                price: car.price,
+                days: car.days,
+                currentDay: 1,
+                accumulatedProfit: car.price * 0.36,
+                timestamp: Date.now()
+            };
+
+            // Tiến hành update đồng loạt dữ liệu ví và đơn hàng lên Firebase
+            const updates = {};
+            updates[`users/${currentUserId}/balance`] = newBalance;
+            updates[`users/${currentUserId}/invested`] = newInvested;
+            updates[`users/${currentUserId}/active_orders/${newOrderRef.key}`] = orderData;
+
+            update(ref(db), updates).then(() => {
+                document.getElementById('modalTitle').innerText = "Đầu tư thành công";
+                document.getElementById('modalBody').innerHTML = `Chúc mừng bạn đã kích hoạt gói tài sản <b>${car.name}</b> thành công.<br>Hệ thống tự động đồng bộ lên Database đám mây.`;
+                document.getElementById('infoModal').style.display = 'flex';
+            });
+        }
+
+        window.openProductDetail = function(carId) {
+            const car = cars.find(c => c.id === carId);
+            document.getElementById('modalTitle').innerText = "Thông Tin " + car.name;
+            document.getElementById('modalBody').innerHTML = `
+                • Gói sản phẩm: <b>${car.name} Luxury</b><br>
+                • Giá niêm yết: <b>${car.price.toLocaleString()}đ</b><br>
+                • Chu kỳ khai thác: <b

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Ci Ci - Đăng nhập</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { 
+            background: #f1f5f9; 
+            height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+            color: #1e293b;
+        }
+        .auth-card {
+            background: white;
+            width: 100%; max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .logo { font-size: 30px; font-weight: 800; color: #334155; margin-bottom: 10px; font-style: italic; }
+        .subtitle { color: #64748b; font-size: 14px; margin-bottom: 40px; }
+        
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; margin-left: 10px; color: #475569; }
+        input {
+            width: 100%; padding: 16px 20px; border-radius: 16px;
+            border: 1.5px solid #e2e8f0; background: #f8fafc;
+            outline: none; transition: 0.2s; font-size: 15px;
+        }
+        input:focus { border-color: #334155; background: white; }
+
+        .btn-submit {
+            width: 100%; padding: 16px; border-radius: 16px; border: none;
+            background: #334155; color: white; font-size: 16px; font-weight: 700;
+            cursor: pointer; margin-top: 10px; box-shadow: 0 10px 20px rgba(51, 65, 85, 0.2);
+        }
+        .switch-mode { margin-top: 25px; font-size: 14px; color: #64748b; }
+        .switch-mode b { color: #334155; cursor: pointer; text-decoration: underline; }
+        .error-msg { color: #e53e3e; font-size: 13px; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <div class="logo">Mi Ci Ci</div>
+        <p class="subtitle">Hệ thống đầu tư xe hơi hạng sang</p>
+
+        <form id="authForm">
+            <div class="input-group">
+                <label>Số điện thoại</label>
+                <input type="tel" id="phone" placeholder="Nhập số điện thoại của bạn" required>
+            </div>
+            <div class="input-group">
+                <label>Mật khẩu</label>
+                <input type="password" id="password" placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required>
+            </div>
+            <button type="submit" class="btn-submit" id="btnText">Đăng nhập ngay</button>
+            <div class="error-msg" id="errorMsg">Tài khoản hoặc mật khẩu không chính xác.</div>
+        </form>
+
+        <div class="switch-mode">
+            <span id="switchText">Chưa có tài khoản?</span> <b id="switchBtn" onclick="toggleMode()">Đăng ký</b>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // CẤU HÌNH HỆ THỐNG FIREBASE CỦA BẠN TẠI ĐÂY
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6kSiAH91LQCl_RDGHPTNP-AMEXovX8EQ",
+            authDomain: "micici-d7869.firebaseapp.com",
+            projectId: "micici-d7869",
+            storageBucket: "micici-d7869.firebasestorage.app",
+            messagingSenderId: "412179117709",
+            appId: "G-62ZFR32SWF"
+        };
+
+        // Khởi tạo các dịch vụ Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let isLoginMode = true;
+
+        // Hàm chuyển đổi giữa Đăng ký và Đăng nhập công khai toàn cục
+        window.toggleMode = function() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('btnText').innerText = isLoginMode ? 'Đăng nhập ngay' : 'Đăng ký tài khoản';
+            document.getElementById('switchText').innerText = isLoginMode ? 'Chưa có tài khoản?' : 'Đã có tài khoản?';
+            document.getElementById('switchBtn').innerText = isLoginMode ? 'Đăng ký' : 'Đăng nhập';
+            document.getElementById('errorMsg').style.display = 'none';
+        }
+
+        // Xử lý gửi Form dữ liệu lên Firebase
+        document.getElementById('authForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('phone').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // Giả lập Số điện thoại thành Email ảo phù hợp chuẩn Firebase Auth
+            const formattedEmail = `${phone}@micici.com`;
+
+            errorMsg.style.display = 'none';
+
+            try {
+                if (isLoginMode) {
+                    // Logic Đăng Nhập Firebase
+                    await signInWithEmailAndPassword(auth, formattedEmail, password);
+                } else {
+                    // Logic Đăng Ký Firebase
+                    await createUserWithEmailAndPassword(auth, formattedEmail, password);
+                }
+                // Thành công -> Tự động chuyển hướng tới Trang chủ
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error(error);
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "Lỗi: " + error.message.replace("Firebase: ", "");
+            }
+        });
+    </script>
+</body>
+</html>
